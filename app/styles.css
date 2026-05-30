@@ -313,7 +313,7 @@ body{font-family:var(--body);color:var(--ink);background:#000;overflow:hidden;po
 .float-back.dark{background:rgba(0,0,0,.4);color:#fff;backdrop-filter:blur(6px);}
 
 /* ===== Map ===== */
-.map-screen{position:relative;background:var(--surface);}
+.map-screen{background:var(--surface);}
 .map-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
 .map-scrim{position:absolute;top:0;left:0;right:0;height:170px;background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,0));}
 .map-top{position:absolute;left:16px;right:16px;top:calc(60px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:12px;z-index:4;}
@@ -340,7 +340,7 @@ body{font-family:var(--body);color:var(--ink);background:#000;overflow:hidden;po
 .sheet-list{overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
 
 /* ===== Tours ===== */
-.tours{position:relative;background:#000;}
+.tours{background:#000;}
 .tour-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
 .tour-tscrim{position:absolute;top:0;left:0;right:0;height:200px;background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,0));}
 .tour-bscrim{position:absolute;left:0;right:0;bottom:0;height:55%;background:linear-gradient(0deg,rgba(0,0,0,.9),rgba(0,0,0,0));}
@@ -422,7 +422,7 @@ body{font-family:var(--body);color:var(--ink);background:#000;overflow:hidden;po
 .sgchip i{font-size:13px;}
 
 /* ===== Match deck ===== */
-.deck{position:relative;background:linear-gradient(180deg,#EAF3F1,#FFF 42%);}
+.deck{background:linear-gradient(180deg,#EAF3F1,#FFF 42%);}
 .deck-header{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 20px 0;}
 .deck-header .ttl{font-family:var(--display);font-weight:800;font-size:26px;}
 .deck-header .sub{display:flex;align-items:center;gap:5px;color:var(--text-2);font-size:12.5px;margin-top:3px;}
@@ -521,7 +521,7 @@ body{font-family:var(--body);color:var(--ink);background:#000;overflow:hidden;po
 .review-card .body{color:var(--text-2);font-size:12.5px;line-height:1.5;}
 
 /* ===== Onboarding ===== */
-.onb{position:relative;background:var(--ink);justify-content:flex-end;}
+.onb{background:var(--ink);justify-content:flex-end;}
 .onb-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
 .onb-tscrim{position:absolute;top:0;left:0;right:0;height:200px;background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,0));}
 .onb-bscrim{position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(0deg,#000 5%,rgba(0,0,0,0));}
