@@ -29,6 +29,31 @@ const VIEWINGS = [
 const PHOTOS = ['1697599425890-021b555aa10e','1585240975817-02c40aa44b97','1762640044379-0f0ed8a4e69d','1756235950714-a6ec4ca2f040','1773586075305-ff823ce4381e'];
 const VIDEO_POSTER = U('1776878617827-56b42b9ea6ba');
 
+const AGENT_LISTINGS = [
+  {title:'Sea-view 1BR – My Khe',price:'11,500,000₫',status:'active',thumb:'1678836892343-04ea22e076a9',views:'1,204',leads:'18',saves:'42'},
+  {title:'2BR Riverside – Han River',price:'15,000,000₫',status:'active',thumb:'1705833935902-0be9567f8ea1',views:'860',leads:'11',saves:'27'},
+  {title:'Studio – Tran Phu',price:'7,000,000₫',status:'draft',thumb:'1737467042207-7fc6318d3e5b',views:'—',leads:'—',saves:'—'},
+];
+const INBOX = [
+  {nm:'Linh Tran',av:'1557053908-4793c484d06f',time:'2m',preview:'Is parking included for the My Khe unit?',unread:2,online:true,ctx:'Sea-view 1BR'},
+  {nm:'Minh Pham',av:'1649338101705-bb7a4d998446',time:'1h',preview:'Great — see you Sunday at 2! 🙌',unread:0,online:false,ctx:'2BR Riverside'},
+  {nm:'Sarah Lee',av:'1678802071553-f14c43e40002',time:'3h',preview:'Could you send the video tour link?',unread:1,online:true,ctx:'Studio – Tran Phu'},
+  {nm:'David Ng',av:'1522075469751-3a6694fb2f61',time:'Yesterday',preview:'Thanks for the quick reply 🙏',unread:0,online:false,ctx:'Garden House'},
+  {nm:'Hoa Nguyen',av:'1595274224599-80d507c0a59e',time:'Mon',preview:'Is it still available?',unread:0,online:false,ctx:'1BR An Thuong'},
+];
+const REQUESTS = [
+  {nm:'Linh Tran',av:'1673819628143-2539cfb1f04f',ago:'Requested 2h ago',title:'Sea-view 1BR – My Khe',price:'11,500,000₫',img:'1762640044379-0f0ed8a4e69d',date:'Sat, May 31',time:'10:30 AM',mode:'In person',modeIc:'user'},
+  {nm:'Minh Pham',av:'1568619578963-3fc7a775028e',ago:'Requested 5h ago',title:'2BR Riverside – Han River',price:'15,000,000₫',img:'1773586075305-ff823ce4381e',date:'Sun, Jun 1',time:'2:00 PM',mode:'Video tour',modeIc:'video-camera'},
+];
+const AGENT_AV2 = U('1684262855358-88f296a2cfc2',200);
+
+function agentTabBar(active){
+  const tabs=[['agentDash','chart-pie-slice','Dashboard'],['agentListings','house-line','Listings'],['agentRequests','calendar-check','Requests'],['agentInbox','chat-circle','Inbox'],['agentProfile','user','Profile']];
+  return `<nav class="tabbar">${tabs.map(([k,ic,l])=>`
+    <div class="tab ${k===active?'active':''}" data-tab="${k}">
+      <i class="${k===active?'ph-fill ph-'+ic:'ph ph-'+ic}"></i><span>${l}</span></div>`).join('')}</nav>`;
+}
+
 /* ---- DOM helpers ---- */
 function h(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstElementChild;}
 const esc = s => (s==null?'':String(s));
@@ -609,10 +634,196 @@ function stub(title,ic,msg){return h(`
     <div class="empty"><i class="ph ph-${ic}"></i><div class="t">${title}</div><div class="s">${msg}</div></div>
   </section>`);}
 
+/* ----- Onboarding ----- */
+screens.onboarding = () => h(`
+  <section class="screen onb black">
+    <div class="onb-bg" style="background-image:url('../images/generated-1780140063174.png')"></div>
+    <div class="onb-tscrim"></div><div class="onb-bscrim"></div>
+    <div class="onb-brand"><div class="logo"><i class="ph-fill ph-house-line"></i></div><div class="nm">Nexa</div></div>
+    <div class="onb-content">
+      <div>
+        <div class="onb-eyebrow">DA NANG, VIETNAM</div>
+        <div class="onb-hl">Find your place<br>by the coast</div>
+        <div class="onb-sub">Rent-ready homes and trusted local agents, all in one place.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="role-card primary tappable" data-tab="explore">
+          <div class="chip"><i class="ph ph-magnifying-glass"></i></div>
+          <div class="col"><div class="t">I'm looking for a home</div><div class="s">Browse, save & book viewings</div></div>
+          <i class="ph ph-arrow-right arr"></i>
+        </div>
+        <div class="role-card secondary tappable" data-tab="agentDash">
+          <div class="chip"><i class="ph ph-buildings"></i></div>
+          <div class="col"><div class="t">I'm an agent</div><div class="s">List properties & manage leads</div></div>
+          <i class="ph ph-arrow-right arr"></i>
+        </div>
+      </div>
+      <div class="onb-login tappable" data-tab="explore">Already have an account? <b>Log in</b></div>
+    </div>
+  </section>`);
+
+/* ----- Agent: Dashboard ----- */
+screens.agentDash = () => {
+  const kpis=[['eye','3,482','Profile views','+12%'],['user-plus','48','New leads','+8%'],['house-line','12','Active listings','+0%',1],['lightning','96%','Response rate','+3%']];
+  const bars=[['M',40],['T',66],['W',53],['T',81],['F',73],['S',96,1],['S',61]];
+  const reqs=[['Linh Tran','1543113415-ba3b69906499','Sea-view 1BR · Sat, 10:30 AM'],['Minh Pham','1629740936456-4b990c27e503','2BR Riverside · Sun, 2:00 PM']];
+  return h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="home-head">
+      <div><div class="onb-eyebrow" style="letter-spacing:1.2px;">AGENT DASHBOARD</div><div style="font-family:var(--display);font-weight:800;font-size:25px;margin-top:4px;">Hi, Em 👋</div></div>
+      <div class="head-actions">
+        <div class="bell tappable" data-toast="3 new alerts"><i class="ph ph-bell"></i><span class="dot"></span></div>
+        <div class="avatar" style="background-image:url('${AGENT_AV2}')"></div>
+      </div>
+    </div>
+    <div class="scroll with-tabs" style="padding:6px 20px 0;display:flex;flex-direction:column;gap:20px;">
+      <div class="kpi-grid">${kpis.map(([ic,v,l,d,flat])=>`
+        <div class="kpi"><div class="top"><div class="ic"><i class="ph ph-${ic}"></i></div><div class="delta ${flat?'flat':''}">${d}</div></div><div><div class="v">${v}</div><div class="l">${l}</div></div></div>`).join('')}</div>
+      <div class="chart-card">
+        <div class="ch-head"><div><div class="ch-lbl">Views this week</div><div class="ch-val"><span class="n">3,482</span><span class="d">+12% vs last week</span></div></div><div class="period tappable" data-toast="Last 7 days">7 days <i class="ph ph-caret-down"></i></div></div>
+        <div class="chart">${bars.map(([d,hpct,hot])=>`<div class="bar-col ${hot?'hot':''}"><div class="bar ${hot?'hot':''}" style="height:${hpct}px;"></div><div class="d">${d}</div></div>`).join('')}</div>
+      </div>
+      <div>
+        <div class="row between" style="margin-bottom:12px;"><div class="row" style="gap:8px;"><div class="block-h" style="margin:0;">Viewing requests</div><div class="badge-count">3</div></div><div class="see-all tappable" data-tab="agentRequests">See all</div></div>
+        <div style="display:flex;flex-direction:column;gap:12px;">${reqs.map(([nm,av,sub])=>`
+          <div class="req"><div class="av" style="background-image:url('${U(av,200)}')"></div><div class="info"><div class="nm">${nm}</div><div class="sub">${sub}</div></div><div class="acts"><div class="req-btn decline tappable" data-toast="Declined"><i class="ph ph-x"></i></div><div class="req-btn accept tappable" data-toast="Accepted ✓"><i class="ph ph-check"></i></div></div></div>`).join('')}</div>
+      </div>
+    </div>
+    ${agentTabBar('agentDash')}
+  </section>`);
+};
+
+/* ----- Agent: Listings ----- */
+screens.agentListings = () => {
+  const tabs=[['All · 12',1],['Active · 9'],['Drafts · 2'],['Paused · 1']];
+  return h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="page-head"><div><div class="page-title" style="font-size:24px;">My listings</div><div style="color:var(--text-2);font-size:12.5px;margin-top:2px;">12 listings · 3,482 views this month</div></div><div class="map-filterbtn tappable" data-nav="createListing" style="width:44px;height:44px;border-radius:22px;"><i class="ph-bold ph-plus"></i></div></div>
+    <div class="pilltabs">${tabs.map(([l,a])=>`<div class="pilltab ${a?'active':''} tappable">${l}</div>`).join('')}</div>
+    <div class="scroll with-tabs" style="padding:0 20px;"><div style="display:flex;flex-direction:column;gap:12px;">
+      ${AGENT_LISTINGS.map(c=>`
+      <div class="alist tappable" data-nav="createListing">
+        <div class="top">
+          <div class="th" style="background-image:url('${U(c.thumb,300)}')"></div>
+          <div class="col"><div class="ti">${c.title}</div><div class="prow"><span class="pr">${c.price} <span>/mo</span></span><span class="status-pill ${c.status}">${c.status==='active'?'Active':'Draft'}</span></div></div>
+          <i class="ph-bold ph-dots-three-vertical more"></i>
+        </div>
+        <div class="divider"></div>
+        <div class="astats">
+          <div class="astat"><i class="ph ph-eye"></i><div><div class="v">${c.views}</div><div class="l">Views</div></div></div>
+          <div class="astat"><i class="ph ph-user-plus"></i><div><div class="v">${c.leads}</div><div class="l">Leads</div></div></div>
+          <div class="astat"><i class="ph ph-heart"></i><div><div class="v">${c.saves}</div><div class="l">Saves</div></div></div>
+        </div>
+      </div>`).join('')}
+    </div></div>
+    ${agentTabBar('agentListings')}
+  </section>`);
+};
+
+/* ----- Agent: Viewing Requests ----- */
+screens.agentRequests = () => h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="page-head"><div class="page-title" style="font-size:22px;">Viewing requests</div><i class="ph ph-calendar-blank head-ic"></i></div>
+    <div class="pilltabs"><div class="pilltab active">Pending · 3</div><div class="pilltab tappable">Upcoming · 2</div><div class="pilltab tappable">Past</div></div>
+    <div class="scroll with-tabs" style="padding:0 20px;"><div style="display:flex;flex-direction:column;gap:14px;">
+      ${REQUESTS.map(r=>`
+      <div class="reqcard">
+        <div class="top"><div class="av" style="background-image:url('${U(r.av,200)}')"></div><div class="info"><div class="nm">${r.nm}</div><div class="ago">${r.ago}</div></div><div class="status-amber">Pending</div></div>
+        <div class="lmini" style="background:var(--surface);border-color:transparent;"><div class="th" style="background-image:url('${U(r.img,300)}')"></div><div class="info"><div class="t">${r.title}</div><div class="p">${r.price} <span>/mo</span></div></div></div>
+        <div class="when"><div class="w"><i class="ph ph-calendar-blank"></i>${r.date}</div><div class="w"><i class="ph ph-clock"></i>${r.time}</div><div class="w"><i class="ph ph-${r.modeIc}"></i>${r.mode}</div></div>
+        <div class="actions"><div class="b decline tappable" data-toast="Declined"><i class="ph ph-x"></i>Decline</div><div class="b accept tappable" data-toast="Accepted ✓"><i class="ph ph-check"></i>Accept</div></div>
+      </div>`).join('')}
+    </div></div>
+    ${agentTabBar('agentRequests')}
+  </section>`);
+
+/* ----- Agent: Inbox ----- */
+screens.agentInbox = () => {
+  const chips=[['All',1],['Unread · 3'],['Leads'],['Archived']];
+  return h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="page-head"><div class="page-title">Inbox</div><div class="bell tappable" data-toast="Compose"><i class="ph ph-pencil-simple-line"></i></div></div>
+    <div class="inbox-search tappable" data-toast="Search"><i class="ph ph-magnifying-glass"></i>Search messages</div>
+    <div class="pilltabs" style="padding-top:14px;">${chips.map(([l,a])=>`<div class="pilltab ${a?'active':''} tappable" style="border-radius:18px;padding:8px 14px;font-size:12.5px;">${l}</div>`).join('')}</div>
+    <div class="scroll with-tabs" style="padding:0 20px;">${INBOX.map(m=>{const u=m.unread>0;return `
+      <div class="inbox-row tappable" data-nav="chat" data-id="l1">
+        <div class="av" style="background-image:url('${U(m.av,200)}')">${m.online?'<span class="on"></span>':''}</div>
+        <div class="col">
+          <div class="r1"><span class="nm ${u?'unread':'read'}">${m.nm}</span><span class="tm ${u?'unread':'read'}">${m.time}</span></div>
+          <div class="r2"><span class="pv ${u?'unread':'read'}">${m.preview}</span>${u?`<span class="badge-count">${m.unread}</span>`:'<i class="ph ph-checks checks"></i>'}</div>
+          <div class="ctx"><i class="ph ph-house-line"></i>${m.ctx}</div>
+        </div>
+      </div>`;}).join('')}</div>
+    ${agentTabBar('agentInbox')}
+  </section>`);
+};
+
+/* ----- Agent: Profile ----- */
+screens.agentProfile = () => h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="page-head"><div class="page-title">Profile</div><i class="ph ph-gear-six head-ic tappable" data-toast="Settings"></i></div>
+    <div class="scroll with-tabs" style="padding:0 20px;">
+      <div class="profile-card">
+        <div class="av" style="background-image:url('${AGENT_AV2}')"></div>
+        <div><div class="nm">Em Nam Home</div><div class="em">em@nexa.vn</div><div class="role-badge"><i class="ph ph-buildings"></i>Verified agent</div></div>
+        <div class="edit-btn tappable" data-toast="Edit profile"><i class="ph ph-pencil-simple"></i></div>
+      </div>
+      <div class="stats" style="margin:18px 0;">
+        <div class="stat"><div class="v">12</div><div class="l">Listings</div></div>
+        <div class="stat"><div class="v">48</div><div class="l">Leads</div></div>
+        <div class="stat"><div class="v">96%</div><div class="l">Response</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div><div class="group-title">AGENT</div><div class="settings-card">
+          ${[['identification-card','Agency profile'],['credit-card','Payouts'],['chart-line','Performance']].map((r,i)=>`${i?'<div class="divider"></div>':''}<div class="setting tappable" data-toast="${r[1]}"><div class="chip"><i class="ph ph-${r[0]}"></i></div><div class="l">${r[1]}</div><i class="ph ph-caret-right ch"></i></div>`).join('')}
+        </div></div>
+        <div class="settings-card"><div class="setting tappable" data-tab="explore"><div class="chip"><i class="ph ph-arrows-left-right"></i></div><div class="l">Switch to looking for a home</div><i class="ph ph-caret-right ch"></i></div></div>
+        <div class="settings-card"><div class="setting tappable" data-tab="onboarding"><div class="chip danger"><i class="ph ph-sign-out"></i></div><div class="l danger">Log out</div></div></div>
+        <div style="text-align:center;color:var(--text-3);font-size:12px;">Nexa for Agents · v1.0.0</div>
+      </div>
+    </div>
+    ${agentTabBar('agentProfile')}
+  </section>`);
+
+/* ----- Agent: Create Listing ----- */
+screens.createListing = () => {
+  const types=[['Apartment',1],['Studio'],['House'],['Villa']];
+  const amen=[['Wi-Fi',1],['Air-con',1],['Parking',1],['Furnished',1],['Balcony'],['Washer']];
+  return h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="topbar"><div class="icon-btn tappable" data-back><i class="ph ph-caret-left"></i></div><div class="t" style="flex:1;">Create listing</div><div class="see-all tappable" data-toast="Preview">Preview</div></div>
+    <div class="scroll" style="padding-bottom:8px;"><div class="form">
+      <div class="field"><div class="flbl">Photos</div><div class="photo-row">
+        <div class="photo-add tappable" data-toast="Add photos"><i class="ph ph-plus"></i><span>Add</span></div>
+        <div class="photo-thumb" style="background-image:url('${U('1692544477551-193d2f057151',300)}')"><div class="cover">Cover</div></div>
+        <div class="photo-thumb" style="background-image:url('${U('1492139059069-0413793f4c1f',300)}')"></div>
+      </div></div>
+      <div class="field"><div class="flbl">Listing title</div><div class="finput">Sea-view 1BR Apartment – My Khe</div></div>
+      <div class="field"><div class="flbl">Property type</div><div class="type-chips">${types.map(([l,a])=>`<div class="tchip ${a?'active':''} tappable">${l}</div>`).join('')}</div></div>
+      <div class="field"><div class="fhead"><div class="flbl">Monthly rent</div><div class="toggle">Negotiable<div class="switch"><div class="knob"></div></div></div></div><div class="finput">12,000,000<span class="suffix">₫ / month</span></div></div>
+      <div class="field"><div class="flbl">Details</div><div class="spec-row">
+        <div class="spec-col"><div class="l">Bedrooms</div><div class="spec-box"><i class="ph ph-bed"></i>1</div></div>
+        <div class="spec-col"><div class="l">Bathrooms</div><div class="spec-box"><i class="ph ph-bathtub"></i>1</div></div>
+        <div class="spec-col"><div class="l">Area m²</div><div class="spec-box"><i class="ph ph-ruler"></i>45</div></div>
+      </div></div>
+      <div class="field"><div class="flbl">Location</div><div class="finput"><i class="ph-fill ph-map-pin" style="color:var(--accent);"></i>Vo Nguyen Giap, My Khe, Son Tra<i class="ph ph-arrow-square-out" style="color:var(--text-3);margin-left:auto;"></i></div></div>
+      <div class="field"><div class="flbl">Amenities</div><div class="amen-chips">${amen.map(([l,on])=>`<div class="achip ${on?'on':'off'} tappable"><i class="ph ph-${on?'check':'plus'}"></i>${l}</div>`).join('')}</div></div>
+      <div class="field"><div class="flbl">Description</div><div class="ftext">Bright, fully-furnished 1BR with a private balcony facing the sea. Steps from My Khe Beach and cafés…</div></div>
+    </div></div>
+    <div class="form-bottom"><div class="draft tappable" data-toast="Draft saved">Save draft</div><div class="publish tappable" data-toast="Listing published! 🚀"><i class="ph ph-rocket-launch"></i>Publish listing</div></div>
+  </section>`);
+};
+
 /* ===================== Router ===================== */
 const appEl=document.getElementById('app');
 let stack=[];
-const TABS=['explore','saved','messages','viewings','profile'];
+const ROOTS=new Set(['onboarding','explore','saved','messages','viewings','profile','agentDash','agentListings','agentRequests','agentInbox','agentProfile']);
 
 function build(name,params){
   const el=screens[name](params||{});
@@ -643,10 +854,8 @@ function back(){
   setTimeout(()=>top.el.remove(),300);
 }
 function nav(name,params){
-  if(TABS.includes(name)) resetTo(name,params); else push(name,params);
-  if(scrollPos) scrollPos=0;
+  if(ROOTS.has(name)) resetTo(name,params); else push(name,params);
 }
-let scrollPos=0;
 
 /* Delegated interactions */
 let toastTimer;
@@ -666,6 +875,6 @@ appEl.addEventListener('click',e=>{
   if(t.dataset.toast)return showToast(t.dataset.toast);
 });
 
-resetTo('explore');
+resetTo('onboarding');
 
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
