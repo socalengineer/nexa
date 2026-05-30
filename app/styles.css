@@ -11,7 +11,7 @@ body{font-family:var(--body);color:var(--ink);background:#000;overflow:hidden;po
 #app{position:relative;height:100%;width:100%;max-width:440px;margin:0 auto;background:var(--bg);overflow:hidden;}
 
 /* Router screens */
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;isolation:isolate;}
 .screen.dark{background:var(--ink);}
 .screen.black{background:#000;}
 .screen.sliding{transform:translateX(100%);}
