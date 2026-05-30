@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Nexa</title>
+
+<!-- PWA / iOS home-screen app -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#FFFFFF" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Nexa" />
+<link rel="apple-touch-icon" href="icon-180.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+
+<!-- Fonts + icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<style>
+  :root{
+    --accent:#0E8C7F; --accent-soft:#E4F2EF; --amber:#F5A623;
+    --bg:#FFFFFF; --border:#EAECEF; --ink:#14161B;
+    --surface:#F5F6F8; --surface-2:#EDEFF2;
+    --text-2:#6B7280; --text-3:#9AA0AB;
+    --body:'Inter',system-ui,sans-serif; --display:'Plus Jakarta Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--body); color:var(--ink); background:#000;
+    overflow:hidden; position:fixed; inset:0;
+  }
+  /* Phone shell: fills the screen on a phone, framed on desktop */
+  #app{
+    position:relative; height:100%; width:100%; max-width:440px; margin:0 auto;
+    background:var(--bg); overflow:hidden;
+  }
+  .screen{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    background:var(--bg); transition:transform .28s ease, opacity .28s ease;
+  }
+  .screen.hidden{display:none;}
+  .screen.behind{transform:translateX(-22%);}
+  .screen.enter{transform:translateX(100%);}
+
+  .safe-top{height:env(safe-area-inset-top,0px);flex:0 0 auto;}
+  .scroll{flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .pad-bottom{height:calc(96px + env(safe-area-inset-bottom,0px));}
+
+  /* ---------- Header ---------- */
+  .home-head{padding:14px 20px 6px;display:flex;align-items:center;justify-content:space-between;}
+  .hello{font-size:13px;color:var(--text-2);}
+  .loc{display:flex;align-items:center;gap:5px;margin-top:3px;}
+  .loc i.pin{color:var(--accent);font-size:16px;}
+  .city{font-family:var(--display);font-weight:700;font-size:18px;}
+  .loc i.caret{font-size:13px;}
+  .head-actions{display:flex;align-items:center;gap:10px;}
+  .bell{position:relative;width:42px;height:42px;border-radius:21px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .bell .dot{position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:1.5px solid #fff;}
+  .avatar{width:42px;height:42px;border-radius:21px;background-size:cover;background-position:center;}
+
+  /* ---------- Search ---------- */
+  .search-row{display:flex;gap:10px;padding:10px 20px 0;}
+  .search{flex:1;height:50px;border-radius:14px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;color:var(--text-3);font-size:14px;}
+  .search i{font-size:19px;}
+  .filter{width:50px;height:50px;border-radius:14px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;}
+  .filter .dot{position:absolute;top:11px;right:12px;width:9px;height:9px;border-radius:50%;background:var(--amber);border:1.5px solid #fff;}
+
+  /* ---------- Chips ---------- */
+  .chips{display:flex;gap:9px;padding:14px 20px 0;overflow-x:auto;scrollbar-width:none;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:22px;background:var(--surface);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-2);}
+  .chip i{font-size:15px;}
+  .chip.active{background:var(--ink);border-color:var(--ink);color:#fff;}
+
+  /* ---------- Section heading ---------- */
+  .sec{padding:22px 20px 0;}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .sec-title{font-family:var(--display);font-weight:700;font-size:18px;}
+  .see-all{color:var(--accent);font-size:13px;font-weight:600;}
+  .sort{display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:20px;background:var(--surface);border:1px solid var(--border);font-size:12.5px;font-weight:600;}
+  .sort i{font-size:13px;}
+
+  /* ---------- Featured cards (horizontal) ---------- */
+  .featured{display:flex;gap:14px;overflow-x:auto;padding:0 20px;scrollbar-width:none;}
+  .featured::-webkit-scrollbar{display:none;}
+  .fcard{flex:0 0 268px;display:flex;flex-direction:column;gap:12px;}
+  .fcard .img{position:relative;height:184px;border-radius:18px;background:var(--surface-2);background-size:cover;background-position:center;overflow:hidden;}
+  .tag{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;background:rgba(20,22,27,.8);color:#fff;font-size:11px;font-weight:600;}
+  .tag i{color:var(--amber);font-size:12px;}
+  .bookmark{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:16px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;font-size:17px;}
+  .price-pill{position:absolute;bottom:12px;left:12px;display:flex;align-items:flex-end;gap:3px;padding:6px 11px;border-radius:20px;background:rgba(255,255,255,.97);}
+  .price-pill .amt{font-family:var(--display);font-weight:700;font-size:14px;}
+  .price-pill .per{color:var(--text-2);font-size:11px;}
+  .fcard .title{font-family:var(--display);font-weight:600;font-size:16px;}
+  .fcard .loc{display:flex;align-items:center;gap:4px;color:var(--text-2);font-size:12.5px;margin-top:2px;}
+  .fcard .loc i{font-size:13px;}
+  .specs{display:flex;gap:14px;margin-top:8px;}
+  .spec{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;}
+  .spec i{color:var(--text-3);font-size:14px;}
+
+  /* ---------- List cards ---------- */
+  .list{display:flex;flex-direction:column;gap:12px;padding:0 20px;}
+  .lcard{display:flex;gap:12px;padding:10px;border-radius:18px;background:#fff;border:1px solid var(--border);}
+  .lthumb{position:relative;width:104px;height:104px;flex:0 0 104px;border-radius:14px;background:var(--surface-2);background-size:cover;background-position:center;overflow:hidden;}
+  .type-tag{position:absolute;top:8px;left:8px;padding:4px 8px;border-radius:16px;background:rgba(20,22,27,.7);color:#fff;font-size:10px;font-weight:600;}
+  .linfo{flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;}
+  .ltop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+  .ltitle{font-family:var(--display);font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ltop i{color:var(--text-3);font-size:19px;}
+  .lloc{display:flex;align-items:center;gap:4px;color:var(--text-2);font-size:12px;}
+  .lloc i{font-size:12px;}
+  .lspecs{display:flex;gap:12px;}
+  .lspec{display:flex;align-items:center;gap:4px;color:var(--text-2);font-size:12px;font-weight:500;}
+  .lspec i{color:var(--text-3);font-size:13px;}
+  .lprice-row{display:flex;align-items:center;justify-content:space-between;}
+  .lprice{display:flex;align-items:flex-end;gap:2px;}
+  .lprice .amt{font-family:var(--display);font-weight:700;font-size:15px;color:var(--accent);}
+  .lprice .per{color:var(--text-3);font-size:11px;}
+  .lagent{width:24px;height:24px;border-radius:12px;background:var(--surface-2);background-size:cover;background-position:center;}
+
+  /* ---------- Tab bar ---------- */
+  .tabbar{position:absolute;left:16px;right:16px;bottom:calc(12px + env(safe-area-inset-bottom,0px));height:62px;border-radius:31px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border:1px solid var(--border);box-shadow:0 8px 24px rgba(20,22,27,.12);display:flex;align-items:center;justify-content:space-between;padding:0 8px;z-index:5;max-width:408px;margin:0 auto;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border-radius:18px;color:var(--text-3);}
+  .tab i{font-size:23px;}
+  .tab span{font-size:10px;font-weight:500;}
+  .tab.active{background:var(--accent-soft);color:var(--accent);}
+  .tab.active span{font-weight:700;}
+
+  /* ---------- Detail ---------- */
+  .hero{position:relative;height:300px;background:var(--surface-2);background-size:cover;background-position:center;flex:0 0 auto;}
+  .hero-scrim{position:absolute;inset:0 0 auto;height:120px;background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,0));}
+  .round-btn{position:absolute;width:40px;height:40px;border-radius:20px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 10px rgba(20,22,27,.15);}
+  .counter{position:absolute;right:16px;bottom:16px;display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:14px;background:rgba(0,0,0,.6);color:#fff;font-size:11.5px;font-weight:600;}
+  .counter i{font-size:12px;}
+  .dcontent{padding:18px 20px;display:flex;flex-direction:column;gap:18px;}
+  .title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .dtitle{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.15;}
+  .neg{flex:0 0 auto;padding:5px 10px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;}
+  .dprice{display:flex;align-items:flex-end;gap:4px;}
+  .dprice .amt{font-family:var(--display);font-weight:800;font-size:22px;color:var(--accent);}
+  .dprice .per{color:var(--text-2);font-size:13px;}
+  .dloc{display:flex;align-items:center;gap:5px;color:var(--text-2);font-size:13px;}
+  .dloc i{font-size:14px;}
+  .specs-card{display:flex;justify-content:space-between;padding:16px;border-radius:16px;background:var(--surface);}
+  .scell{display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .scell i{color:var(--accent);font-size:21px;}
+  .scell .v{font-family:var(--display);font-weight:700;font-size:15px;}
+  .scell .l{color:var(--text-3);font-size:11px;}
+  .agent-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;border:1px solid var(--border);}
+  .agent-card .av{width:46px;height:46px;border-radius:23px;background:var(--surface-2);background-size:cover;background-position:center;}
+  .agent-card .nm{display:flex;align-items:center;gap:5px;font-family:var(--display);font-weight:700;font-size:14.5px;}
+  .agent-card .nm i{color:var(--accent);font-size:15px;}
+  .agent-card .sub{color:var(--text-2);font-size:12px;margin-top:3px;}
+  .agent-card .call{margin-left:auto;width:40px;height:40px;border-radius:20px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .block-h{font-family:var(--display);font-weight:700;font-size:17px;margin-bottom:12px;}
+  .amen{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 10px;}
+  .amen .a{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;}
+  .amen .a i{color:var(--accent);font-size:19px;}
+  .about{color:var(--text-2);font-size:13.5px;line-height:1.5;}
+  .dbottom{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 20px calc(16px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid var(--border);}
+  .dbottom .pr .amt{font-family:var(--display);font-weight:800;font-size:18px;}
+  .dbottom .pr .per{color:var(--text-3);font-size:11px;}
+  .dbtns{display:flex;align-items:center;gap:10px;}
+  .msg-btn{width:52px;height:52px;border-radius:26px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .book-btn{height:52px;border-radius:26px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 22px;font-family:var(--display);font-weight:700;font-size:15px;}
+
+  .toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:.25s;z-index:20;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .tappable{cursor:pointer;}
+  .tappable:active{opacity:.9;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ HOME ============ -->
+  <section class="screen" id="home">
+    <div class="safe-top"></div>
+    <div class="scroll">
+      <div class="home-head">
+        <div>
+          <div class="hello">Find your home in</div>
+          <div class="loc tappable"><i class="ph-fill ph-map-pin pin"></i><span class="city">Da Nang, Vietnam</span><i class="ph ph-caret-down caret"></i></div>
+        </div>
+        <div class="head-actions">
+          <div class="bell tappable"><i class="ph ph-bell"></i><span class="dot"></span></div>
+          <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1519744434498-a0de604df9db?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400')"></div>
+        </div>
+      </div>
+
+      <div class="search-row">
+        <div class="search tappable"><i class="ph ph-magnifying-glass"></i><span>Search area, price, ID…</span></div>
+        <div class="filter tappable"><i class="ph ph-sliders-horizontal"></i><span class="dot"></span></div>
+      </div>
+
+      <div class="chips">
+        <div class="chip active"><i class="ph ph-squares-four"></i>All</div>
+        <div class="chip"><i class="ph ph-buildings"></i>Apartment</div>
+        <div class="chip"><i class="ph ph-bed"></i>Studio</div>
+        <div class="chip"><i class="ph ph-house-line"></i>House</div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-head"><div class="sec-title">Featured stays</div><div class="see-all tappable">See all</div></div>
+      </div>
+      <div class="featured" id="featured"></div>
+
+      <div class="sec">
+        <div class="sec-head"><div class="sec-title">Nearby listings</div><div class="sort tappable"><i class="ph ph-arrows-down-up"></i>Newest</div></div>
+      </div>
+      <div class="list" id="nearby"></div>
+
+      <div class="pad-bottom"></div>
+    </div>
+
+    <nav class="tabbar">
+      <div class="tab active" data-tab="Explore"><i class="ph-fill ph-compass"></i><span>Explore</span></div>
+      <div class="tab" data-tab="Saved"><i class="ph ph-heart"></i><span>Saved</span></div>
+      <div class="tab" data-tab="Messages"><i class="ph ph-chat-circle"></i><span>Messages</span></div>
+      <div class="tab" data-tab="Viewings"><i class="ph ph-calendar-check"></i><span>Viewings</span></div>
+      <div class="tab" data-tab="Profile"><i class="ph ph-user"></i><span>Profile</span></div>
+    </nav>
+  </section>
+
+  <!-- ============ DETAIL ============ -->
+  <section class="screen hidden enter" id="detail">
+    <div class="hero" id="hero">
+      <div class="hero-scrim"></div>
+      <div class="safe-top" style="position:absolute;top:0;left:0;right:0;"></div>
+      <div class="round-btn tappable" id="back" style="left:16px;top:calc(16px + env(safe-area-inset-top,0px));"><i class="ph ph-caret-left"></i></div>
+      <div class="round-btn tappable" style="right:60px;top:calc(16px + env(safe-area-inset-top,0px));"><i class="ph ph-share-network"></i></div>
+      <div class="round-btn tappable" style="right:16px;top:calc(16px + env(safe-area-inset-top,0px));"><i class="ph ph-heart"></i></div>
+      <div class="counter"><i class="ph ph-image-square"></i><span>1 / 12</span></div>
+    </div>
+    <div class="scroll">
+      <div class="dcontent">
+        <div>
+          <div class="title-row">
+            <div class="dtitle" id="d-title">Sea-view 1BR Apartment</div>
+            <div class="neg">Negotiable</div>
+          </div>
+          <div class="dprice" style="margin-top:8px;"><span class="amt" id="d-amt">12,000,000₫</span><span class="per">/ month</span></div>
+          <div class="dloc" style="margin-top:8px;"><i class="ph-fill ph-map-pin"></i><span id="d-loc">Vo Nguyen Giap, My Khe, Son Tra</span></div>
+        </div>
+
+        <div class="specs-card">
+          <div class="scell"><i class="ph ph-bed"></i><span class="v">1</span><span class="l">Bedroom</span></div>
+          <div class="scell"><i class="ph ph-bathtub"></i><span class="v">1</span><span class="l">Bathroom</span></div>
+          <div class="scell"><i class="ph ph-ruler"></i><span class="v">45</span><span class="l">m² area</span></div>
+          <div class="scell"><i class="ph ph-buildings"></i><span class="v">8th</span><span class="l">Floor</span></div>
+        </div>
+
+        <div class="agent-card">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1585240975817-02c40aa44b97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=300')"></div>
+          <div>
+            <div class="nm">Em Nam Home <i class="ph-fill ph-seal-check"></i></div>
+            <div class="sub">Verified agent · replies in ~1h</div>
+          </div>
+          <div class="call tappable"><i class="ph-fill ph-phone"></i></div>
+        </div>
+
+        <div>
+          <div class="block-h">What's inside</div>
+          <div class="amen">
+            <div class="a"><i class="ph ph-wifi-high"></i>Fast Wi-Fi</div>
+            <div class="a"><i class="ph ph-wind"></i>Air-con</div>
+            <div class="a"><i class="ph ph-car"></i>Parking</div>
+            <div class="a"><i class="ph ph-armchair"></i>Furnished</div>
+            <div class="a"><i class="ph ph-sun"></i>Balcony</div>
+            <div class="a"><i class="ph ph-t-shirt"></i>Washer</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="block-h">About this home</div>
+          <div class="about">Bright, fully-furnished one-bedroom with a private balcony facing the sea. A short walk to My Khe Beach, cafés and the night market. Move-in ready with modern appliances and round-the-clock building security.</div>
+        </div>
+        <div style="height:8px;"></div>
+      </div>
+    </div>
+    <div class="dbottom">
+      <div class="pr"><div class="amt" id="d-amt2">12,000,000₫</div><div class="per">per month</div></div>
+      <div class="dbtns">
+        <div class="msg-btn tappable" data-toast="Opening chat with agent…"><i class="ph-fill ph-chat-circle"></i></div>
+        <div class="book-btn tappable" data-toast="Viewing request sent!"><i class="ph-fill ph-calendar-check"></i>Book viewing</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const featured = [
+  {img:"https://images.unsplash.com/photo-1677100091536-4a311441afb5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080", price:"12,000,000₫", title:"1BR Apartment – Hai Chau", loc:"Hoang Dieu St, Hai Chau", beds:"1 Bed", baths:"1 Bath", area:"45 m²"},
+  {img:"https://images.unsplash.com/photo-1758611970184-c600f45cbb71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080", price:"9,800,000₫", title:"Beachside Studio – My Khe", loc:"Vo Nguyen Giap, Son Tra", beds:"1 Bed", baths:"1 Bath", area:"45 m²"},
+];
+const nearby = [
+  {thumb:"https://images.unsplash.com/photo-1761395105130-c77ea4a8e3ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600", agent:"https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=200", type:"Studio", title:"Cozy Studio – My An", loc:"My An, Ngu Hanh Son", beds:"1", baths:"1", area:"38m²", price:"8,500,000₫"},
+  {thumb:"https://images.unsplash.com/photo-1730656447563-53fa32d2c425?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600", agent:"https://images.unsplash.com/photo-1668752600261-e56e7f3780b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=200", type:"2 Bed", title:"2BR Riverside – Han River", loc:"Bach Dang St, Hai Chau", beds:"2", baths:"2", area:"72m²", price:"15,000,000₫"},
+  {thumb:"https://images.unsplash.com/photo-1669232509455-9f9075b3a6ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600", agent:"https://images.unsplash.com/photo-1632765854612-9b02b6ec2b15?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=200", type:"House", title:"Garden House – Cam Le", loc:"Cam Le District", beds:"3", baths:"2", area:"110m²", price:"18,000,000₫"},
+];
+
+const featuredEl = document.getElementById('featured');
+featured.forEach((c,i)=>{
+  const el=document.createElement('div');
+  el.className='fcard tappable';
+  el.innerHTML=`
+    <div class="img" style="background-image:url('${c.img}')">
+      <div class="tag"><i class="ph-fill ph-star"></i>Featured</div>
+      <div class="bookmark"><i class="ph ph-heart"></i></div>
+      <div class="price-pill"><span class="amt">${c.price}</span><span class="per">/mo</span></div>
+    </div>
+    <div>
+      <div class="title">${c.title}</div>
+      <div class="loc"><i class="ph ph-map-pin"></i>${c.loc}</div>
+      <div class="specs">
+        <div class="spec"><i class="ph ph-bed"></i>${c.beds}</div>
+        <div class="spec"><i class="ph ph-bathtub"></i>${c.baths}</div>
+        <div class="spec"><i class="ph ph-ruler"></i>${c.area}</div>
+      </div>
+    </div>`;
+  el.onclick=()=>openDetail({img:c.img,title:c.title,price:c.price,loc:c.loc});
+  featuredEl.appendChild(el);
+});
+
+const nearbyEl=document.getElementById('nearby');
+nearby.forEach(c=>{
+  const el=document.createElement('div');
+  el.className='lcard tappable';
+  el.innerHTML=`
+    <div class="lthumb" style="background-image:url('${c.thumb}')"><div class="type-tag">${c.type}</div></div>
+    <div class="linfo">
+      <div class="ltop"><div class="ltitle">${c.title}</div><i class="ph ph-heart"></i></div>
+      <div class="lloc"><i class="ph ph-map-pin"></i>${c.loc}</div>
+      <div class="lspecs">
+        <div class="lspec"><i class="ph ph-bed"></i>${c.beds}</div>
+        <div class="lspec"><i class="ph ph-bathtub"></i>${c.baths}</div>
+        <div class="lspec"><i class="ph ph-ruler"></i>${c.area}</div>
+      </div>
+      <div class="lprice-row">
+        <div class="lprice"><span class="amt">${c.price}</span><span class="per">/mo</span></div>
+        <div class="lagent" style="background-image:url('${c.agent}')"></div>
+      </div>
+    </div>`;
+  el.onclick=()=>openDetail({img:c.thumb,title:c.title,price:c.price,loc:c.loc});
+  nearbyEl.appendChild(el);
+});
+
+const home=document.getElementById('home');
+const detail=document.getElementById('detail');
+
+function openDetail(d){
+  document.getElementById('hero').style.backgroundImage=`url('${d.img}')`;
+  document.getElementById('d-title').textContent=d.title;
+  document.getElementById('d-loc').textContent=d.loc;
+  document.getElementById('d-amt').textContent=d.price;
+  document.getElementById('d-amt2').textContent=d.price;
+  detail.querySelector('.scroll').scrollTop=0;
+  detail.classList.remove('hidden');
+  home.classList.add('behind');
+  requestAnimationFrame(()=>detail.classList.remove('enter'));
+}
+function closeDetail(){
+  detail.classList.add('enter');
+  home.classList.remove('behind');
+  setTimeout(()=>detail.classList.add('hidden'),280);
+}
+document.getElementById('back').onclick=closeDetail;
+
+// Tab bar
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    if(t.dataset.tab!=='Explore') showToast(t.dataset.tab+' — coming soon');
+  };
+});
+
+// Toasts
+const toast=document.getElementById('toast');
+let toastTimer;
+function showToast(msg){
+  toast.textContent=msg; toast.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>toast.classList.remove('show'),1600);
+}
+document.querySelectorAll('[data-toast]').forEach(b=>b.onclick=()=>showToast(b.dataset.toast));
+
+// Service worker (offline shell)
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
