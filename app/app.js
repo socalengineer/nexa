@@ -100,6 +100,14 @@ screens.explore = () => h(`
           <div class="avatar tappable" data-tab="profile" style="background-image:url('${AVATAR}')"></div>
         </div>
       </div>
+      <div class="modes">
+        <div class="mode active"><i class="ph-fill ph-squares-four"></i>Browse</div>
+        <div class="mode tappable" data-nav="map"><i class="ph ph-map-trifold"></i>Map</div>
+        <div class="mode tappable" data-nav="discover"><i class="ph ph-compass"></i>Discover</div>
+        <div class="mode tappable" data-nav="tours"><i class="ph ph-video-camera"></i>Tours</div>
+        <div class="mode tappable" data-nav="matchdeck"><i class="ph ph-cards"></i>Match</div>
+        <div class="mode tappable" data-nav="concierge"><i class="ph-fill ph-sparkle"></i>Ask Em</div>
+      </div>
       <div class="search-row">
         <div class="search tappable" data-toast="Search coming soon"><i class="ph ph-magnifying-glass"></i><span>Search area, price, ID…</span></div>
         <div class="filter tappable" data-toast="Filters coming soon"><i class="ph ph-sliders-horizontal"></i><span class="dot"></span></div>
@@ -374,7 +382,157 @@ screens.booking = ({id}) => {
   </section>`);
 };
 
-screens.map = ()=>stub('Map view','map-trifold','Map experience coming next.');
+/* ----- Map ----- */
+screens.map = () => {
+  const pins=[['7M₫',58,250],['8.5M₫',96,318],['9.8M₫',238,232],['18M₫',300,300],['11M₫',96,432],['12M₫',286,420],['15M₫',168,300,true]];
+  const chips=[['coins','Under 15M'],['buildings','Apartment',1],['bed','Studio'],['dog','Pet ok']];
+  const sheet=['l4','l3'];
+  return h(`
+  <section class="screen map-screen">
+    <div class="map-bg" style="background-image:url('../images/generated-1780137644101.png')"></div>
+    <div class="map-scrim"></div>
+    <div class="float-back tappable" data-back><i class="ph ph-caret-left"></i></div>
+    ${pins.map(([p,x,y,dark])=>`<div class="pin ${dark?'dark':''} tappable" data-open="l1" style="left:${x/390*100}%;top:${y/844*100}%;">${dark?'<i class="ph-fill ph-house"></i>':''}${p}</div>`).join('')}
+    <div class="search-area tappable" data-toast="Searching this area…"><i class="ph ph-arrow-clockwise"></i>Search this area</div>
+    <div class="map-top">
+      <div class="map-srow">
+        <div class="map-search tappable" data-toast="Search"><i class="ph ph-magnifying-glass"></i>Hai Chau, Da Nang</div>
+        <div class="map-filterbtn tappable" data-toast="Filters"><i class="ph ph-sliders-horizontal"></i></div>
+      </div>
+      <div class="map-chips">${chips.map(([ic,l,a])=>`<div class="mchip ${a?'active':''}"><i class="ph ph-${ic}"></i>${l}</div>`).join('')}</div>
+    </div>
+    <div class="bottom-sheet">
+      <div class="grabber"></div>
+      <div class="sheet-head"><div><div class="ct">32 homes in view</div><div class="sub">Hai Chau · Da Nang</div></div><div class="sort tappable" data-toast="Sorted by price"><i class="ph ph-arrows-down-up"></i>Price</div></div>
+      <div class="sheet-list">${sheet.map(id=>listCard(id)).join('')}</div>
+    </div>
+  </section>`);
+};
+
+/* ----- Tours (vertical video feed) ----- */
+screens.tours = () => h(`
+  <section class="screen tours black">
+    <div class="tour-bg" style="background-image:url('../images/generated-1780137852598.png')"></div>
+    <div class="tour-tscrim"></div><div class="tour-bscrim"></div>
+    <div class="float-back dark tappable" data-back><i class="ph ph-caret-left"></i></div>
+    <div class="tour-topnav">
+      <div class="feedtabs"><div class="feedtab">Nearby</div><div class="feedtab active">For you</div><div class="feedtab">Saved</div></div>
+      <i class="ph ph-magnifying-glass srch"></i>
+    </div>
+    <div class="tourtag"><i class="ph-fill ph-video-camera"></i>Video tour · 0:42</div>
+    <div class="playbtn tappable" data-toast="Playing tour…"><i class="ph-fill ph-play"></i></div>
+    <div class="actionrail">
+      <div class="arail"><div class="av" style="background-image:url('${U('1647580425101-0728b90c0bfa',200)}')"><div class="plus"><i class="ph-bold ph-plus"></i></div></div></div>
+      <div class="arail tappable" data-toast="Liked"><i class="ph-fill ph-heart like"></i>248</div>
+      <div class="arail tappable" data-nav="chat" data-id="l1"><i class="ph-fill ph-chat-circle"></i>32</div>
+      <div class="arail tappable" data-toast="Saved"><i class="ph-fill ph-bookmark-simple"></i>Save</div>
+      <div class="arail tappable" data-toast="Share link copied"><i class="ph-fill ph-share-network"></i>Share</div>
+    </div>
+    <div class="tour-caption">
+      <div class="tour-agent"><div class="av" style="background-image:url('${U('1647580425101-0728b90c0bfa',200)}')"></div><span class="handle">@emnamhome</span><i class="ph-fill ph-seal-check"></i><div class="follow tappable" data-toast="Following">Follow</div></div>
+      <div class="tour-title">1BR Apartment – Hai Chau</div>
+      <div class="tour-loc"><i class="ph-fill ph-map-pin"></i>Hoang Dieu St, Hai Chau</div>
+      <div class="tour-specs">${['1 Bed','1 Bath','45 m²','Furnished'].map(s=>`<div class="sc">${s}</div>`).join('')}</div>
+      <div class="tour-price"><span class="amt">12,000,000₫</span><span class="per">/month · negotiable</span></div>
+    </div>
+    <div class="cta-row">
+      <div class="b fill tappable" data-nav="chat" data-id="l1"><i class="ph-fill ph-chat-circle"></i>Message</div>
+      <div class="b white tappable" data-nav="schedule" data-id="l1"><i class="ph-fill ph-calendar-check"></i>Book viewing</div>
+    </div>
+  </section>`);
+
+/* ----- Discover ----- */
+screens.discover = () => {
+  const vibes=[['Beachfront','12 homes','1509233725247-49e657c54213'],['Riverside','18 homes','1777025567531-1ab10832ecf4'],['Move-in ready','24 homes','1752920887032-38d6640e82f8'],['Leafy & quiet','9 homes','1611069981278-5d52c2251575']];
+  return h(`
+  <section class="screen discover">
+    <div class="safe-top"></div>
+    <div class="topbar flush" style="padding-bottom:0;"><div class="icon-btn tappable" data-back><i class="ph ph-caret-left"></i></div></div>
+    <div class="scroll" style="display:flex;flex-direction:column;gap:26px;padding-bottom:24px;">
+      <div class="masthead"><div><div class="eyebrow">FRI, MAY 30 · DA NANG</div><div class="disc-title">Discover</div></div><div class="av" style="background-image:url('${U('1591973669966-52d2534d9087',200)}')"></div></div>
+      <div class="hero-story tappable" data-toast="Opening guide…" style="background-image:url('../images/generated-1780138130720.png')">
+        <div class="scr"></div>
+        <div class="hero-pill"><i class="ph-fill ph-compass"></i>NEIGHBORHOOD GUIDE</div>
+        <div class="hero-bm"><i class="ph ph-bookmark-simple"></i></div>
+        <div class="hero-info"><div class="hl">Living by My Khe Beach</div><div class="sb">Sea-view studios and bright 1BRs along Da Nang's most-loved coast — 9 fresh this week.</div><div class="cta">Explore the guide <i class="ph ph-arrow-right"></i></div></div>
+      </div>
+      <div>
+        <div class="sec-head" style="padding:0 20px;margin-bottom:14px;"><div><div class="sec-title">Browse by vibe</div><div style="color:var(--text-2);font-size:12.5px;margin-top:2px;">Find a home that fits your lifestyle</div></div></div>
+        <div class="vibe-rail">${vibes.map(([t,c,img])=>`<div class="vibe-card tappable" data-nav="map" style="background-image:url('${U(img)}')"><div class="scr"></div><div class="cap"><div class="t">${t}</div><div class="c">${c}</div></div></div>`).join('')}</div>
+      </div>
+      <div>
+        <div class="sec-head" style="padding:0 20px;margin-bottom:14px;"><div class="sec-title" style="display:flex;align-items:center;gap:7px;"><i class="ph-fill ph-sparkle" style="color:var(--amber);"></i>Editor's picks</div><div class="see-all tappable" data-tab="explore">See all</div></div>
+        <div class="list">${['l6','l3'].map(id=>listCard(id)).join('')}</div>
+      </div>
+    </div>
+  </section>`);
+};
+
+/* ----- Concierge (AI chat) ----- */
+screens.concierge = () => h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="conc-head">
+      <i class="ph ph-caret-left tappable" data-back style="font-size:24px;"></i>
+      <div class="id"><div class="em-av lg"><i class="ph-fill ph-sparkle"></i></div><div><div class="nm">Em</div><div class="role">AI home concierge</div></div></div>
+      <i class="ph ph-notepad act tappable" data-toast="New chat"></i>
+    </div>
+    <div class="thread" id="thread">
+      <div class="em-row"><div class="em-av"><i class="ph-fill ph-sparkle"></i></div><div class="bubble a">Hi! Tell me what you're after and I'll find homes that fit — in your own words.</div></div>
+      <div class="brow u"><div class="bubble u">A bright 1-bedroom near My Khe beach, under 12 million, pet friendly 🐶</div></div>
+      <div class="em-row"><div class="em-av"><i class="ph-fill ph-sparkle"></i></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+          <div style="color:var(--text-2);font-size:13px;">Here's what I understood —</div>
+          <div class="parsed-chips">
+            <div class="pchip-row"><div class="pchip"><i class="ph-fill ph-map-pin"></i>My Khe, Son Tra<i class="ph ph-x"></i></div><div class="pchip"><i class="ph-fill ph-coins"></i>≤ 12M₫<i class="ph ph-x"></i></div></div>
+            <div class="pchip-row"><div class="pchip"><i class="ph ph-bed"></i>1+ bedroom<i class="ph ph-x"></i></div><div class="pchip"><i class="ph ph-dog"></i>Pet friendly<i class="ph ph-x"></i></div></div>
+          </div>
+          <div style="font-size:13.5px;font-weight:600;">14 matches — here are my top 2:</div>
+          ${['l6','l3'].map(id=>listCard(id)).join('')}
+          <div class="followups">
+            <div class="fchip-row"><div class="fchip tappable" data-toast="Filtered: sea-view"><i class="ph ph-waves"></i>Only sea-view</div><div class="fchip tappable" data-toast="Added parking"><i class="ph ph-car"></i>Add parking</div></div>
+            <div class="fchip-row"><div class="fchip tappable" data-toast="Showing cheaper"><i class="ph ph-arrow-down"></i>Show cheaper</div><div class="fchip tappable" data-nav="map"><i class="ph ph-map-trifold"></i>See on map</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="composer">
+      <div class="suggest">${[['sparkle','Near the beach'],['sparkle','Under 8M'],['sparkle','Move-in ready']].map(([ic,l])=>`<div class="sgchip tappable" data-toast="Asked: ${l}"><i class="ph ph-${ic}"></i>${l}</div>`).join('')}</div>
+      <div class="inputbar"><div class="ph-text">Ask Em anything…</div><i class="ph ph-microphone"></i><div class="send tappable" data-toast="Thinking…"><i class="ph ph-arrow-up"></i></div></div>
+    </div>
+  </section>`);
+
+/* ----- Match deck (swipe) ----- */
+screens.matchdeck = () => h(`
+  <section class="screen deck">
+    <div class="safe-top"></div>
+    <div class="deck-header"><div><div class="ttl">For you</div><div class="sub"><i class="ph-fill ph-sparkle"></i>24 fresh matches, tuned to your taste</div></div><div class="tune tappable" data-toast="Tune preferences"><i class="ph ph-sliders-horizontal"></i></div></div>
+    <div class="card-stack">
+      <div class="backcard bc2"></div>
+      <div class="backcard bc1"></div>
+      <div class="topcard tappable" data-open="l2" style="background-image:url('${U('1553713618-017b4b0924fb')}')">
+        <div class="scr"></div>
+        <div class="photo-dots"><div class="d on"></div><div class="d"></div><div class="d"></div><div class="d"></div></div>
+        <div class="match-pill"><i class="ph-fill ph-sparkle"></i>94% match</div>
+        <div class="deck-info">
+          <div class="t">Sea-view 1BR – My Khe</div>
+          <div class="loc"><i class="ph-fill ph-map-pin"></i>Vo Nguyen Giap, Son Tra</div>
+          <div class="chips">${['1 Bed','1 Bath','45 m²','Pet ok'].map(s=>`<div class="c">${s}</div>`).join('')}</div>
+          <div class="pr"><span class="amt">11,500,000₫</span><span class="per">/month</span></div>
+          <div class="why"><i class="ph-fill ph-heart"></i>Like the sea-view homes you saved</div>
+        </div>
+      </div>
+    </div>
+    <div class="deck-hint">Swipe right to save · left to pass</div>
+    <div class="deck-actions">
+      <div class="dbtn sm tappable" data-toast="Undone"><i class="ph ph-arrow-counter-clockwise"></i></div>
+      <div class="dbtn md tappable" data-toast="Passed"><i class="ph ph-x"></i></div>
+      <div class="dbtn lg tappable" data-toast="Saved ❤"><i class="ph-fill ph-heart"></i></div>
+      <div class="dbtn md cal tappable" data-nav="schedule" data-id="l2"><i class="ph ph-calendar-check"></i></div>
+      <div class="dbtn bm tappable" data-toast="Bookmarked"><i class="ph ph-bookmark-simple"></i></div>
+    </div>
+  </section>`);
+
 screens.lightbox = ()=>stub('Photos','image-square','Photo gallery coming next.');
 function stub(title,ic,msg){return h(`
   <section class="screen">
@@ -392,7 +550,7 @@ function build(name,params){
   const el=screens[name](params||{});
   if(name==='explore') afterExplore(el);
   if(name==='schedule') afterSchedule(el);
-  if(name==='chat') setTimeout(()=>{const t=el.querySelector('#thread');if(t)t.scrollTop=t.scrollHeight;},30);
+  if(name==='chat'||name==='concierge') setTimeout(()=>{const t=el.querySelector('#thread');if(t)t.scrollTop=t.scrollHeight;},30);
   return el;
 }
 function resetTo(name,params){
