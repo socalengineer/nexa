@@ -15,6 +15,17 @@ const NEARBY = ['l3','l4','l5'];
 const SAVED = ['l6','l4','l5'];
 
 const AVATAR = U('1519744434498-a0de604df9db',400);
+const AGENT_AV = U('1585240975817-02c40aa44b97',300);
+
+const CONVOS = [
+  {id:'c1',agent:'Em Nam Home',av:AGENT_AV,verified:true,online:true,last:'Saturday works — I can do 10:30 AM. Shall I propose it?',time:'9:24',unread:1,listing:'l1'},
+  {id:'c2',agent:'Da Nang Rentals',av:U('1573496359142-b8d87734a5a2',300),verified:true,online:false,last:'The riverside apartment is still available 😊',time:'Yesterday',unread:0,listing:'l4'},
+  {id:'c3',agent:'Coastal Homes',av:U('1438761681033-6461ffad8d80',300),verified:false,online:true,last:'Sure, I can send a few more photos this evening.',time:'Mon',unread:0,listing:'l5'},
+];
+const VIEWINGS = [
+  {listing:'l1',day:'Sat, May 31',time:'10:30 AM',mode:'In person',status:'Confirmed'},
+  {listing:'l4',day:'Tue, Jun 3',time:'2:00 PM',mode:'Video tour',status:'Pending'},
+];
 
 /* ---- DOM helpers ---- */
 function h(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstElementChild;}
@@ -64,6 +75,13 @@ function listCard(id,saved){const c=LISTINGS[id];return `
       </div>
     </div></div>`;
 }
+
+function listingMini(id,{flat=false,nav=true}={}){const c=LISTINGS[id];return `
+  <div class="lmini ${flat?'flat':''} ${nav?'tappable':''}" ${nav?`data-open="${id}"`:''}>
+    <div class="th" style="background-image:url('${c.img}')"></div>
+    <div class="info"><div class="t">${c.title}</div><div class="p">${c.price} <span>/mo</span></div></div>
+    ${nav?'<i class="ph ph-caret-right ch"></i>':''}
+  </div>`;}
 
 /* ===================== Screens ===================== */
 const screens = {};
@@ -160,20 +178,39 @@ screens.profile = () => {
   </section>`);
 };
 
-/* ----- Messages / Viewings (filled out in wave 2) ----- */
+/* ----- Messages ----- */
 screens.messages = () => h(`
   <section class="screen">
     <div class="safe-top"></div>
-    <div class="page-head"><div class="page-title">Messages</div><i class="ph ph-magnifying-glass head-ic"></i></div>
-    <div class="empty"><i class="ph ph-chat-circle-dots"></i><div class="t">No messages yet</div><div class="s">Start a conversation with an agent from any listing.</div></div>
+    <div class="page-head"><div class="page-title">Messages</div><i class="ph ph-magnifying-glass head-ic tappable" data-toast="Search messages"></i></div>
+    <div class="scroll with-tabs"><div class="convos">${CONVOS.map(c=>`
+      <div class="convo tappable" data-nav="chat" data-id="${c.id}">
+        <div class="av" style="background-image:url('${c.av}')">${c.online?'<span class="on"></span>':''}</div>
+        <div class="mid">
+          <div class="nm">${c.agent} ${c.verified?'<i class="ph-fill ph-seal-check"></i>':''}</div>
+          <div class="lm">${c.last}</div>
+        </div>
+        <div class="rt"><div class="tm">${c.time}</div>${c.unread?`<div class="badge">${c.unread}</div>`:''}</div>
+      </div>`).join('')}</div></div>
     ${tabBar('messages')}
   </section>`);
 
+/* ----- Viewings ----- */
 screens.viewings = () => h(`
   <section class="screen">
     <div class="safe-top"></div>
-    <div class="page-head"><div class="page-title">Viewings</div><i class="ph ph-calendar-check head-ic"></i></div>
-    <div class="empty"><i class="ph ph-calendar-blank"></i><div class="t">No viewings booked</div><div class="s">Book a viewing from a listing and it'll show up here.</div></div>
+    <div class="page-head"><div class="page-title">Viewings</div><i class="ph ph-calendar-plus head-ic tappable" data-tab="explore"></i></div>
+    <div class="scroll with-tabs" style="padding:0 20px;">
+      <div style="display:flex;flex-direction:column;gap:12px;">${VIEWINGS.map(v=>{const c=LISTINGS[v.listing];const ok=v.status==='Confirmed';return `
+        <div class="tappable" data-open="${v.listing}" style="border:1px solid var(--border);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:12px;">
+          <div class="row between">
+            <div class="row" style="gap:8px;"><i class="ph-fill ph-calendar-check" style="color:var(--accent);font-size:18px;"></i><span style="font-family:var(--display);font-weight:700;font-size:14px;">${v.day} · ${v.time}</span></div>
+            <span style="font-size:11px;font-weight:700;padding:4px 9px;border-radius:11px;background:${ok?'var(--accent-soft)':'#FEF3C7'};color:${ok?'var(--accent)':'#B45309'};">${v.status}</span>
+          </div>
+          ${listingMini(v.listing,{nav:false})}
+          <div class="row" style="gap:6px;color:var(--text-2);font-size:12.5px;"><i class="ph ph-${v.mode==='In person'?'user':'video-camera'}"></i>${v.mode}</div>
+        </div>`;}).join('')}</div>
+    </div>
     ${tabBar('viewings')}
   </section>`);
 
@@ -223,9 +260,120 @@ screens.detail = ({id}) => {
   </section>`);
 };
 
-/* Stubs replaced in later waves */
-screens.chat = ()=>stub('Chat','chat-circle','Conversation with the agent will appear here.');
-screens.schedule = ()=>stub('Schedule viewing','calendar-check','Booking form coming next.');
+/* ----- Chat thread ----- */
+function resolveConvo(id){
+  const c=CONVOS.find(x=>x.id===id);
+  if(c)return c;
+  return {agent:'Em Nam Home',av:AGENT_AV,verified:true,online:true,listing:LISTINGS[id]?id:'l1'};
+}
+screens.chat = ({id}) => {
+  const c=resolveConvo(id);
+  return h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="chat-head">
+      <i class="ph ph-caret-left tappable" data-back style="font-size:24px;"></i>
+      <div class="av" style="background-image:url('${c.av}')">${c.online?'<span class="on"></span>':''}</div>
+      <div class="info"><div class="nm">${c.agent} ${c.verified?'<i class="ph-fill ph-seal-check"></i>':''}</div><div class="st">${c.online?'Active now':'Last seen 2h ago'} · replies in ~1h</div></div>
+      <i class="ph-fill ph-phone hic tappable" data-toast="Calling…"></i>
+      <i class="ph-bold ph-dots-three-vertical hic tappable" data-toast="More"></i>
+    </div>
+    <div class="chat-context">${listingMini(c.listing)}</div>
+    <div class="thread" id="thread">
+      <div class="day-divider">TODAY</div>
+      <div class="brow"><div class="bubble a">Hi! Thanks for your interest in the My Khe apartment 😊</div></div>
+      <div class="brow"><div class="bubble a">It's available from June 5 — would you like to see it in person?</div></div>
+      <div class="brow u"><div class="bubble u">Yes! Is this weekend possible?</div></div>
+      <div class="brow"><div class="bubble a">Saturday works — I can do 10:30 AM. Shall I propose it?</div></div>
+      <div class="brow"><div class="proposal">
+        <div class="ph"><i class="ph-fill ph-calendar-check"></i>Viewing proposed</div>
+        <div><div class="d">Saturday, May 31</div><div class="sub">10:30 AM · In person at the unit</div></div>
+        <div class="pb"><div class="pbtn fill tappable" data-nav="booking" data-id="${c.listing}">Confirm</div><div class="pbtn out tappable" data-nav="schedule" data-id="${c.listing}">Reschedule</div></div>
+      </div></div>
+    </div>
+    <div class="composer">
+      <div class="qreplies">
+        ${['Parking included?','Move in June 5?','More photos'].map(q=>`<div class="qreply tappable" data-toast="Sent: ${q}">${q}</div>`).join('')}
+      </div>
+      <div class="inputbar"><i class="ph ph-plus-circle"></i><div class="ph-text">Message…</div><i class="ph ph-camera"></i><div class="send tappable" data-toast="Sent"><i class="ph ph-arrow-up"></i></div></div>
+    </div>
+  </section>`);
+};
+
+/* ----- Schedule viewing ----- */
+screens.schedule = ({id}) => {
+  const lid=LISTINGS[id]?id:'l1';
+  const days=[['FRI','30'],['SAT','31'],['SUN','1'],['MON','2'],['TUE','3']];
+  const times=[['9:00 AM',0,1],['10:30 AM',1],['12:00 PM'],['2:00 PM'],['3:30 PM'],['5:00 PM']];
+  const el=h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="topbar"><div class="icon-btn tappable" data-back><i class="ph ph-caret-left"></i></div><div class="t">Book a viewing</div></div>
+    <div class="scroll" style="padding:18px 20px;display:flex;flex-direction:column;gap:22px;">
+      ${listingMini(lid,{nav:false})}
+      <div class="seg" id="seg">
+        <div class="opt active" data-i="0"><i class="ph ph-user"></i>In person</div>
+        <div class="opt" data-i="1"><i class="ph ph-video-camera"></i>Video tour</div>
+      </div>
+      <div>
+        <div class="sched-h"><div class="t">Select a date</div><div class="m">May 2026</div></div>
+        <div class="dates" id="dates">${days.map(([wd,dn],i)=>`<div class="daycell ${i===1?'active':''}" data-i="${i}"><div class="wd">${wd}</div><div class="dn">${dn}</div></div>`).join('')}</div>
+      </div>
+      <div>
+        <div class="block-h">Available times</div>
+        <div class="times" id="times">
+          <div class="trow">${times.slice(0,3).map(([t,act,dis],i)=>`<div class="timeslot ${act?'active':''} ${dis?'disabled':''}" ${dis?'':`data-t="${t}"`}>${t}</div>`).join('')}</div>
+          <div class="trow">${times.slice(3).map(([t])=>`<div class="timeslot" data-t="${t}">${t}</div>`).join('')}</div>
+        </div>
+      </div>
+      <div>
+        <div class="block-h">Add a note (optional)</div>
+        <div class="note-field">Any questions for the agent? e.g. parking, pets, move-in date…</div>
+      </div>
+    </div>
+    <div class="sched-bottom">
+      <div class="sched-sum"><i class="ph-fill ph-calendar-check"></i><span id="sum">Saturday, May 31  ·  10:30 AM</span></div>
+      <div class="cta tappable" data-nav="booking" data-id="${lid}">Confirm viewing <i class="ph ph-arrow-right"></i></div>
+    </div>
+  </section>`);
+  return el;
+};
+function afterSchedule(el){
+  const seg=el.querySelectorAll('#seg .opt');
+  seg.forEach(o=>o.onclick=()=>{seg.forEach(x=>x.classList.remove('active'));o.classList.add('active');});
+  const dc=el.querySelectorAll('#dates .daycell');
+  dc.forEach(d=>d.onclick=()=>{dc.forEach(x=>x.classList.remove('active'));d.classList.add('active');});
+  el.querySelectorAll('#times .timeslot[data-t]').forEach(t=>t.onclick=()=>{
+    el.querySelectorAll('#times .timeslot').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  });
+}
+
+/* ----- Booking confirmed ----- */
+screens.booking = ({id}) => {
+  const lid=LISTINGS[id]?id:'l1';
+  return h(`
+  <section class="screen">
+    <div class="safe-top"></div>
+    <div class="close-row"><i class="ph ph-x close-x tappable" data-tab="explore"></i></div>
+    <div class="confirm">
+      <div class="success-badge"><div class="inner"><i class="ph-bold ph-check"></i></div></div>
+      <div><div class="h">Viewing confirmed!</div><div class="sub" style="margin-top:8px;">You're all set. We've notified Em Nam Home and added it to your schedule.</div></div>
+      <div class="summary-card">
+        ${listingMini(lid,{nav:false})}
+        <div class="divider"></div>
+        <div class="sumrow"><div class="chip"><i class="ph ph-calendar-check"></i></div><div><div class="lbl">WHEN</div><div class="val">Saturday, May 31 · 10:30 AM</div></div></div>
+        <div class="sumrow"><div class="chip"><i class="ph ph-map-pin"></i></div><div><div class="lbl">WHERE</div><div class="val">In person at the unit</div></div></div>
+        <div class="sumrow"><div class="chip" style="background-image:url('${AGENT_AV}');background-size:cover;"></div><div><div class="lbl">AGENT</div><div class="val">Em Nam Home <i class="ph-fill ph-seal-check"></i></div></div></div>
+      </div>
+      <div class="reminder"><i class="ph ph-bell"></i>We'll remind you 1 hour before.</div>
+      <div class="confirm-btns">
+        <div class="cbtn out tappable" data-nav="chat" data-id="${lid}"><i class="ph-fill ph-chat-circle"></i>Message</div>
+        <div class="cbtn fill tappable" data-toast="Added to calendar"><i class="ph ph-calendar-plus"></i>Add to calendar</div>
+      </div>
+    </div>
+  </section>`);
+};
+
 screens.map = ()=>stub('Map view','map-trifold','Map experience coming next.');
 screens.lightbox = ()=>stub('Photos','image-square','Photo gallery coming next.');
 function stub(title,ic,msg){return h(`
@@ -243,6 +391,8 @@ const TABS=['explore','saved','messages','viewings','profile'];
 function build(name,params){
   const el=screens[name](params||{});
   if(name==='explore') afterExplore(el);
+  if(name==='schedule') afterSchedule(el);
+  if(name==='chat') setTimeout(()=>{const t=el.querySelector('#thread');if(t)t.scrollTop=t.scrollHeight;},30);
   return el;
 }
 function resetTo(name,params){
