@@ -26,6 +26,8 @@ const VIEWINGS = [
   {listing:'l1',day:'Sat, May 31',time:'10:30 AM',mode:'In person',status:'Confirmed'},
   {listing:'l4',day:'Tue, Jun 3',time:'2:00 PM',mode:'Video tour',status:'Pending'},
 ];
+const PHOTOS = ['1697599425890-021b555aa10e','1585240975817-02c40aa44b97','1762640044379-0f0ed8a4e69d','1756235950714-a6ec4ca2f040','1773586075305-ff823ce4381e'];
+const VIDEO_POSTER = U('1776878617827-56b42b9ea6ba');
 
 /* ---- DOM helpers ---- */
 function h(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstElementChild;}
@@ -234,6 +236,11 @@ screens.detail = ({id}) => {
       <div class="round-btn tappable" data-toast="Share link copied" style="right:60px;top:calc(16px + env(safe-area-inset-top,0px));"><i class="ph ph-share-network"></i></div>
       <div class="round-btn tappable" data-toast="Saved to favourites" style="right:16px;top:calc(16px + env(safe-area-inset-top,0px));"><i class="ph ph-heart"></i></div>
       <div class="counter tappable" data-nav="lightbox"><i class="ph ph-image-square"></i><span>1 / 12</span></div>
+      <div class="hero-gallery">
+        ${PHOTOS.slice(0,3).map(p=>`<div class="hg-thumb tappable" data-nav="lightbox" style="background-image:url('${U(p,300)}')"></div>`).join('')}
+        <div class="hg-thumb tappable" data-nav="video" style="background-image:url('${VIDEO_POSTER}')"><div class="ov"><i class="ph-fill ph-play"></i></div></div>
+        <div class="hg-thumb tappable" data-nav="lightbox" style="background-image:url('${U('1773586075305-ff823ce4381e',300)}')"><div class="ov">+7</div></div>
+      </div>
     </div>
     <div class="scroll">
       <div class="dcontent">
@@ -255,6 +262,25 @@ screens.detail = ({id}) => {
         </div>
         <div><div class="block-h">What's inside</div><div class="amen">${amen.map(([ic,l])=>`<div class="a"><i class="ph ph-${ic}"></i>${l}</div>`).join('')}</div></div>
         <div><div class="block-h">About this home</div><div class="about">Bright, fully-furnished home with a private balcony. A short walk to My Khe Beach, cafés and the night market. Move-in ready with modern appliances and round-the-clock building security.</div></div>
+        <div>
+          <div class="block-h">Location</div>
+          <div class="mini-map"><div class="water"></div><div class="r1"></div><div class="r2"></div><div class="mmpin"><i class="ph-fill ph-map-pin"></i></div></div>
+          <div class="dloc" style="margin-top:10px;"><i class="ph-fill ph-map-pin"></i><span>${c.loc}</span></div>
+        </div>
+        <div>
+          <div class="block-h">What's nearby</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            ${[['umbrella','My Khe Beach','400 m'],['coffee','Cong Cà Phê','200 m'],['shopping-cart','Lotte Mart','650 m'],['airplane-tilt','Da Nang Airport','3.2 km']].map(([ic,nm,d])=>`<div class="poi"><div class="ib"><i class="ph ph-${ic}"></i></div><div class="nm">${nm}</div><div class="d">${d}</div></div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="row between" style="margin-bottom:12px;"><div class="block-h" style="margin:0;">Ratings & reviews</div><div class="see-all tappable" data-toast="All 24 reviews">See all 24</div></div>
+          <div class="rscore" style="margin-bottom:12px;"><div class="num">4.8</div><div><div class="stars">${'<i class="ph-fill ph-star"></i>'.repeat(5)}</div><div class="rsub">Based on 24 verified reviews</div></div></div>
+          <div class="review-card">
+            <div class="top"><div class="av"></div><div style="flex:1;"><div class="nm">Linh Tran</div><div class="dt">2 weeks ago</div></div><div class="stars" style="font-size:12px;">${'<i class="ph-fill ph-star"></i>'.repeat(5)}</div></div>
+            <div class="body">Stunning sea views and spotless apartment. The agent was responsive and the balcony is perfect for morning coffee.</div>
+          </div>
+        </div>
         <div style="height:8px;"></div>
       </div>
     </div>
@@ -420,7 +446,7 @@ screens.tours = () => h(`
       <i class="ph ph-magnifying-glass srch"></i>
     </div>
     <div class="tourtag"><i class="ph-fill ph-video-camera"></i>Video tour · 0:42</div>
-    <div class="playbtn tappable" data-toast="Playing tour…"><i class="ph-fill ph-play"></i></div>
+    <div class="playbtn tappable" data-nav="video"><i class="ph-fill ph-play"></i></div>
     <div class="actionrail">
       <div class="arail"><div class="av" style="background-image:url('${U('1647580425101-0728b90c0bfa',200)}')"><div class="plus"><i class="ph-bold ph-plus"></i></div></div></div>
       <div class="arail tappable" data-toast="Liked"><i class="ph-fill ph-heart like"></i>248</div>
@@ -533,7 +559,49 @@ screens.matchdeck = () => h(`
     </div>
   </section>`);
 
-screens.lightbox = ()=>stub('Photos','image-square','Photo gallery coming next.');
+/* ----- Photo lightbox ----- */
+screens.lightbox = () => {
+  const strip=[[PHOTOS[1]],[PHOTOS[2]],[PHOTOS[0],1],[VIDEO_POSTER,0,1],[PHOTOS[3]],[PHOTOS[4]]];
+  return h(`
+  <section class="screen lightbox black">
+    <div class="safe-top"></div>
+    <div class="lb-top">
+      <div class="lb-btn tappable" data-back><i class="ph ph-x"></i></div>
+      <div class="lb-counter"><i class="ph ph-image-square"></i>3 / 12</div>
+      <div class="lb-btn tappable" data-toast="Share link copied"><i class="ph ph-share-network"></i></div>
+    </div>
+    <div class="lb-photo" style="background-image:url('${U(PHOTOS[0])}')"></div>
+    <div class="lb-bottom">
+      <div class="lb-caption"><i class="ph ph-sun"></i>Living room · sea-facing balcony</div>
+      <div class="lb-strip">${strip.map(([img,active,video])=>{
+        const url=img===VIDEO_POSTER?img:U(img,200);
+        return `<div class="lb-thumb ${active?'active':''} tappable" ${video?'data-nav="video"':''} style="background-image:url('${url}')">${video?'<div class="vp"><i class="ph-fill ph-play"></i></div>':''}</div>`;}).join('')}</div>
+    </div>
+  </section>`);
+};
+
+/* ----- Video player ----- */
+screens.video = () => h(`
+  <section class="screen video-screen black">
+    <div class="video-bg" style="background-image:url('${VIDEO_POSTER}')"></div>
+    <div class="video-dim"></div>
+    <div class="video-tscrim"></div><div class="video-bscrim"></div>
+    <div class="video-top">
+      <div class="vbtn tappable" data-back><i class="ph ph-x"></i></div>
+      <div class="vlabel"><i class="ph-fill ph-video-camera"></i>Video tour · 1 of 2</div>
+      <div class="vbtn tappable" data-toast="Options"><i class="ph ph-dots-three-vertical"></i></div>
+    </div>
+    <div class="video-center">
+      <div class="vctrl tappable" data-toast="Rewind"><i class="ph-fill ph-skip-back"></i></div>
+      <div class="vctrl big tappable" data-toast="Paused"><i class="ph-fill ph-pause"></i></div>
+      <div class="vctrl tappable" data-toast="Forward"><i class="ph-fill ph-skip-forward"></i></div>
+    </div>
+    <div class="video-caption"><div class="t">Sea-view 1BR Apartment</div><div class="s">Walkthrough · My Khe, Son Tra</div></div>
+    <div class="scrubber">
+      <div class="vtrack"><div class="fill"></div><div class="knob"></div></div>
+      <div class="vtime"><span>0:34</span><div class="ic"><i class="ph-fill ph-speaker-high"></i><i class="ph ph-corners-out"></i></div><span>1:45</span></div>
+    </div>
+  </section>`);
 function stub(title,ic,msg){return h(`
   <section class="screen">
     <div class="safe-top"></div>
